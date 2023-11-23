@@ -14,5 +14,5 @@ func main() {
 }
 
 func welcome(c *fiber.Ctx) error {
-	return c.Status(200).JSON("welcome")
+	return c.Status(200).JSON("welcome there ")
 }
