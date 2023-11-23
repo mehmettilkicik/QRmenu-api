@@ -2,11 +2,14 @@ package main
 
 import (
 	"log"
+	"qr-menu-api/config"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
+	config.ConnectDb()
+
 	app := fiber.New()
 	app.Get("api", welcome)
 	log.Fatal(app.Listen(":3000"))
