@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"qr-menu-api/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -24,6 +25,9 @@ func ConnectDb() {
 	}
 	log.Println("Connected to the database successfully")
 	db.Logger = logger.Default.LogMode(logger.Info)
+
+	log.Println("Running Migrations")
+	db.AutoMigrate(&models.Table{}, &models.Item{}, &models.Order{})
 
 	Database = DBInstance{Db: db}
 }
