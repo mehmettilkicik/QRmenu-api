@@ -7,6 +7,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func setupRoutes(app *fiber.App) {
+	//Table endpoints
+
+	//Item endpoints
+
+	//Order endpoints
+}
+
 func main() {
 	config.ConnectDb()
 
