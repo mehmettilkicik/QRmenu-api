@@ -3,13 +3,18 @@ package main
 import (
 	"log"
 	"qr-menu-api/config"
+	"qr-menu-api/routes"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func setupRoutes(app *fiber.App) {
 	//Table endpoints
-
+	app.Post("/api/tables/", routes.CreateTable)
+	app.Get("/api/tables/", routes.GetTables)
+	app.Get("/api/tables/:id", routes.GetTable)
+	app.Put("/api/tables/:id", routes.UpdateTable)
+	app.Delete("/api/tables/:id", routes.DeleteTable)
 	//Item endpoints
 
 	//Order endpoints
@@ -17,8 +22,8 @@ func setupRoutes(app *fiber.App) {
 
 func main() {
 	config.ConnectDb()
-
 	app := fiber.New()
+	setupRoutes(app)
 	app.Get("api", welcome)
 	log.Fatal(app.Listen(":3000"))
 
