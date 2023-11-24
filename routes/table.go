@@ -89,7 +89,7 @@ func UpdateTable(c *fiber.Ctx) error {
 	var updatedata UpdateTable
 
 	if err := c.BodyParser(&updatedata); err != nil {
-		c.Status(500).JSON(err.Error())
+		return c.Status(500).JSON(err.Error())
 	}
 
 	table.Number = updatedata.Number
