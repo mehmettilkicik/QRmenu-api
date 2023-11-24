@@ -62,7 +62,7 @@ func GetCategory(c *fiber.Ctx) error {
 	}
 
 	if err := findCategory(id, &category); err != nil {
-		c.Status(400).JSON(err.Error())
+		return c.Status(400).JSON(err.Error())
 	}
 
 	responseCategory := CreateResponseCategory(category)
@@ -79,7 +79,7 @@ func UpdateCategory(c *fiber.Ctx) error {
 	}
 
 	if err := findCategory(id, &category); err != nil {
-		c.Status(400).JSON(err.Error())
+		return c.Status(400).JSON(err.Error())
 	}
 
 	type UpdateCategory struct {
@@ -87,6 +87,10 @@ func UpdateCategory(c *fiber.Ctx) error {
 	}
 
 	var updatedata UpdateCategory
+
+	if err := c.BodyParser(&updatedata); err != nil {
+		return c.Status(500).JSON(err.Error())
+	}
 
 	category.Name = updatedata.Name
 
@@ -107,11 +111,11 @@ func DeleteCategory(c *fiber.Ctx) error {
 	}
 
 	if err := findCategory(id, &category); err != nil {
-		c.Status(400).JSON(err.Error())
+		return c.Status(400).JSON(err.Error())
 	}
 
 	if err := config.Database.Db.Delete(&category).Error; err != nil {
-		c.Status(400).JSON(err.Error())
+		return c.Status(404).JSON(err.Error())
 	}
 
 	return c.Status(200).SendString("Category deleted successfully")
