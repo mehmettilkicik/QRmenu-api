@@ -132,3 +132,7 @@ func GetItem(c *fiber.Ctx) error {
 	return c.Status(200).JSON(responseItem)
 
 }
+
+//Update Item
+
+//Delete Item
