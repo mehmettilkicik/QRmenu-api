@@ -62,7 +62,7 @@ func GetItems(c *fiber.Ctx) error {
 }
 
 func findItemsByCategory(cRefer int, items *[]models.Item) error {
-	config.Database.Db.Find(&items, "category_id=?", cRefer)
+	config.Database.Db.Find(&items, "category_refer=?", cRefer)
 	if len(*items) == 0 {
 		return errors.New("no items in this category")
 	}
@@ -78,7 +78,7 @@ func findItem(id int, item *models.Item) error {
 }
 
 func GetItemByCategory(c *fiber.Ctx) error {
-	cRefer, err := c.ParamsInt("category_id")
+	cRefer, err := c.ParamsInt("category_refer")
 
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
