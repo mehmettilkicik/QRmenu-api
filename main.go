@@ -15,6 +15,13 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/api/tables/:id", routes.GetTable)
 	app.Put("/api/tables/:id", routes.UpdateTable)
 	app.Delete("/api/tables/:id", routes.DeleteTable)
+
+	//Category endpoints
+	app.Post("/api/categories", routes.CreateCategory)
+	app.Get("/api/categories", routes.GetCategories)
+	app.Get("/api/categories/:id", routes.GetCategory)
+	app.Put("/api/categories/:id", routes.UpdateCategory)
+	app.Delete("/api/categories/:id", routes.DeleteCategory)
 	//Item endpoints
 
 	//Order endpoints
