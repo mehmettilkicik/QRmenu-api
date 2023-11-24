@@ -22,11 +22,11 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/api/categories/:id", routes.GetCategory)
 	app.Put("/api/categories/:id", routes.UpdateCategory)
 	app.Delete("/api/categories/:id", routes.DeleteCategory)
-	app.Get("/api/categories/:category_refer/items", routes.GetItemsByCategory)
 	//Item endpoints
 	app.Post("/api/items", routes.CreateItem)
 	app.Get("/api/items", routes.GetItems)
-	//app.Get("/api/items/:id", routes.GetItem)
+	app.Get("/api/items/:category_refer", routes.GetItemsByCategory)
+	app.Get("api/items/:category_refer/:id", routes.GetItem)
 	//Order endpoints
 }
 
