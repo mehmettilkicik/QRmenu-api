@@ -28,6 +28,7 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/api/items/:category_refer", routes.GetItemsByCategory)
 	app.Get("api/items/:category_refer/:id", routes.GetItem)
 	app.Put("api/items/:category_refer/:id", routes.UpdateItem)
+	app.Delete("api/items/:category_refer/:id", routes.DeleteItem)
 	//Order endpoints
 }
 

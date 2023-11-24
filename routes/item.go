@@ -171,3 +171,24 @@ func UpdateItem(c *fiber.Ctx) error {
 }
 
 //Delete Item
+
+func DeleteItem(c *fiber.Ctx) error {
+	cRefer, err := c.ParamsInt("category_refer")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :category_refer is an integer")
+	}
+	id, err2 := c.ParamsInt("id")
+	if err2 != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
+	}
+	var item models.Item
+	if err := findItem(cRefer, id, &item); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	if err := config.Database.Db.Delete(&item).Error; err != nil {
+		return c.Status(404).JSON(err.Error())
+	}
+
+	return c.Status(200).SendString("Item deleted successfully")
+}
