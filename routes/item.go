@@ -133,6 +133,41 @@ func GetItem(c *fiber.Ctx) error {
 
 }
 
-//Update Item
+// Update Item
+func UpdateItem(c *fiber.Ctx) error {
+	cRefer, err := c.ParamsInt("category_refer")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :category_refer is an integer")
+	}
+	id, err2 := c.ParamsInt("id")
+	if err2 != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
+	}
+	var item models.Item
+	if err := findItem(cRefer, id, &item); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+	var category models.Category
+	if err := findCategory(cRefer, &category); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+	type UpdateData struct {
+		Name string `json:"name"`
+	}
+
+	var updateItem UpdateData
+	if err := c.BodyParser(&updateItem); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	item.Name = updateItem.Name
+	config.Database.Db.Save(&item)
+
+	responseCategory := CreateResponseCategory(category)
+
+	responseItem := CreateResponseItem(item, responseCategory)
+
+	return c.Status(200).JSON(responseItem)
+}
 
 //Delete Item
