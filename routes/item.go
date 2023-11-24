@@ -77,7 +77,7 @@ func findItem(id int, item *models.Item) error {
 	return nil
 }
 
-func GetItemByCategory(c *fiber.Ctx) error {
+func GetItemsByCategory(c *fiber.Ctx) error {
 	cRefer, err := c.ParamsInt("category_refer")
 
 	if err != nil {

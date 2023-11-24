@@ -25,7 +25,7 @@ func setupRoutes(app *fiber.App) {
 	//Item endpoints
 	app.Post("/api/items", routes.CreateItem)
 	app.Get("/api/items", routes.GetItems)
-	app.Get("/api/items/:category_refer", routes.GetItemByCategory)
+	app.Get("/api/items/:category_refer", routes.GetItemsByCategory)
 	//Order endpoints
 }
 
