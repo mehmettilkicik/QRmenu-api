@@ -61,9 +61,9 @@ func GetItems(c *fiber.Ctx) error {
 	return c.Status(200).JSON(responseItems)
 }
 
-func findItemsByCategory(cRefer int, item *models.Item) error {
-	config.Database.Db.Find(&item, "category_id=?", cRefer)
-	if item.CategoryRefer == 0 {
+func findItemsByCategory(cRefer int, items *[]models.Item) error {
+	config.Database.Db.Find(&items, "category_id=?", cRefer)
+	if len(*items) == 0 {
 		return errors.New("no items in this category")
 	}
 	return nil
@@ -77,6 +77,28 @@ func findItem(id int, item *models.Item) error {
 	return nil
 }
 
-func GetItem(c *fiber.Ctx) error {
-	return c.Status(200).SendString("return")
+func GetItemByCategory(c *fiber.Ctx) error {
+	cRefer, err := c.ParamsInt("category_id")
+
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
+	}
+
+	var items []models.Item
+	if err := findItemsByCategory(cRefer, &items); err != nil {
+		if err.Error() == "no items in this category" {
+			return c.Status(404).JSON("No items found in this category")
+		}
+		return c.Status(500).JSON("Internal server errror")
+	}
+
+	responseItems := []Item{}
+	for _, item := range items {
+		var category models.Category
+		config.Database.Db.Find(&category, "id=?", item.CategoryRefer)
+		responseCategory := CreateResponseCategory(category)
+		responseItem := CreateResponseItem(item, responseCategory)
+		responseItems = append(responseItems, responseItem)
+	}
+	return c.Status(200).JSON(responseItems)
 }
