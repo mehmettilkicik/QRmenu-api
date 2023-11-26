@@ -30,6 +30,7 @@ func setupRoutes(app *fiber.App) {
 	app.Put("api/items/:category_refer/:id", routes.UpdateItem)
 	app.Delete("api/items/:category_refer/:id", routes.DeleteItem)
 	//Order endpoints
+	app.Post("/api/orders", routes.CreateOrder)
 }
 
 func main() {
