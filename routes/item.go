@@ -63,14 +63,6 @@ func GetItems(c *fiber.Ctx) error {
 
 //Get item by category
 
-func findItemOrder(iRefer int, item *models.Item) error {
-	config.Database.Db.Find(&item, "id=?", iRefer)
-	if item.ID == 0 {
-		return errors.New("item does not exist")
-	}
-	return nil
-}
-
 func findItemsByCategory(cRefer int, items *[]models.Item) error {
 	config.Database.Db.Find(&items, "category_refer=?", cRefer)
 	if len(*items) == 0 {
