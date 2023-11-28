@@ -12,51 +12,42 @@ type Order struct {
 	ID           uint `json:"id" gorm:"primaryKey"`
 	CreatedAt    time.Time
 	Table        Table         `gorm:"foreignKey:TableRefer"`
-	OrderDetails []OrderDetail `gorm:"foreignKey:OrderID"`
+	OrderDetails []OrderDetail `json:"order_details" gorm:"foreignKey:OrderID"`
 }
 
 type OrderDetail struct {
-	OrderID  uint `gorm:"foreignKey:OrderID"`
+	OrderID  uint `json:"order_id" gorm:"index"`
 	ItemID   uint `json:"item_id"`
 	Quantity uint `json:"quantity"`
 }
 
-func CreateResponseOrderDetail(orderdetail models.OrderDetail) OrderDetail {
-	return OrderDetail{OrderID: orderdetail.OrderID, ItemID: orderdetail.ItemID, Quantity: orderdetail.Quantity}
+func CreateResponseOrder(order models.Order, table Table, ordedetails []OrderDetail) Order {
+	return Order{ID: order.ID, CreatedAt: order.CreatedAt, Table: table, OrderDetails: ordedetails}
 }
 
-func CreateResponseOrder(order models.Order, table Table, orderdetails []OrderDetail) Order {
-	return Order{ID: order.ID, CreatedAt: order.CreatedAt, Table: table, OrderDetails: orderdetails}
-}
-
-func CreateOrderDetail(order models.Order, orderdetail models.OrderDetail) error {
-	orderdetail.OrderID = order.ID
-	config.Database.Db.Create(&orderdetail)
-	return nil
+func CreateResponseOrderDetail(order models.Order, ordedetail models.OrderDetail) OrderDetail {
+	return OrderDetail{OrderID: order.ID, ItemID: ordedetail.ItemID, Quantity: ordedetail.Quantity}
 }
 
 func CreateOrder(c *fiber.Ctx) error {
 	var order models.Order
+
 	if err := c.BodyParser(&order); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
+
 	var table models.Table
+
 	if err := findTable(order.TableRefer, &table); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	var responseOrderDetails []OrderDetail
-
-	for _, v := range order.OrderDetails {
-		CreateOrderDetail(order, v)
-	}
+	orderdetails := []models.OrderDetail{}
 	config.Database.Db.Create(&order)
 	for _, v := range order.OrderDetails {
-		responseOrderDetail := CreateResponseOrderDetail(v)
-		responseOrderDetails = append(responseOrderDetails, responseOrderDetail)
+		v.OrderID = order.ID
+		orderdetails = append(orderdetails, v)
 	}
 
-	responseTable := CreateResponseTable(table)
-	responseOrder := CreateResponseOrder(order, responseTable, responseOrderDetails)
-	return c.Status(200).JSON(responseOrder)
+	return c.Status(200).JSON(orderdetails)
 }

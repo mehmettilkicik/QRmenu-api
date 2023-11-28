@@ -7,5 +7,5 @@ type Order struct {
 	CreatedAt    time.Time
 	TableRefer   int           `json:"table_id"`
 	Table        Table         `gorm:"foreignKey:TableRefer"`
-	OrderDetails []OrderDetail `gorm:"foreignKey:OrderID"`
+	OrderDetails []OrderDetail `json:"order_details" gorm:"foreignKey:OrderID"`
 }
