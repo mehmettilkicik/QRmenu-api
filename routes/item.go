@@ -107,6 +107,16 @@ func findItem(cRefer int, id int, item *models.Item) error {
 	return nil
 }
 
+/*
+func findItemByID(id int, item *models.Item) error {
+	config.Database.Db.Find(&item, "id=?", id)
+	if item.ID == 0 {
+		return errors.New("item does not exist")
+	}
+	return nil
+}
+*/
+
 func GetItem(c *fiber.Ctx) error {
 	cRefer, err := c.ParamsInt("category_refer")
 	if err != nil {
