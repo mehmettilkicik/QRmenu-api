@@ -48,7 +48,6 @@ func CreateOrder(c *fiber.Ctx) error {
 	config.Database.Db.Create(&order)
 	for _, v := range order.OrderDetails {
 		v.OrderID = order.ID
-		config.Database.Db.Create(&v)
 		var item models.Item
 		if err := findItemByID(v.ItemRefer, &item); err != nil {
 			return c.Status(400).JSON(err.Error())
@@ -103,7 +102,7 @@ func GetAllOrders(c *fiber.Ctx) error {
 		var table models.Table
 		config.Database.Db.Find(&table, "id=?", order.TableRefer)
 		var orderDetails []models.OrderDetail
-		config.Database.Db.Find(&orderDetails, "order_id", order.ID)
+		config.Database.Db.Find(&orderDetails, "order_id=?", order.ID)
 		for _, v := range orderDetails {
 			var item models.Item
 			if err := findItemByID(v.ItemRefer, &item); err != nil {
