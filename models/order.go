@@ -8,4 +8,5 @@ type Order struct {
 	TableRefer   int           `json:"table_id"`
 	Table        Table         `gorm:"foreignKey:TableRefer"`
 	OrderDetails []OrderDetail `json:"order_details" gorm:"foreignKey:OrderID"`
+	IsPaid       bool          `json:"is_paid"`
 }

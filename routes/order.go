@@ -13,11 +13,12 @@ type Order struct {
 	CreatedAt    time.Time
 	Table        Table         `gorm:"foreignKey:TableRefer"`
 	OrderDetails []OrderDetail `json:"order_details" gorm:"foreignKey:OrderID"`
+	IsPaid       bool          `json:"is_paid"`
 }
 
 type OrderDetail struct {
 	OrderID  uint `json:"order_id" gorm:"index"`
-	ItemID   uint `json:"item_id"`
+	Item     Item
 	Quantity uint `json:"quantity"`
 }
 
@@ -25,8 +26,8 @@ func CreateResponseOrder(order models.Order, table Table, ordedetails []OrderDet
 	return Order{ID: order.ID, CreatedAt: order.CreatedAt, Table: table, OrderDetails: ordedetails}
 }
 
-func CreateResponseOrderDetail(order models.Order, ordedetail models.OrderDetail) OrderDetail {
-	return OrderDetail{OrderID: order.ID, ItemID: ordedetail.ItemID, Quantity: ordedetail.Quantity}
+func CreateResponseOrderDetail(ordedetail models.OrderDetail, item Item) OrderDetail {
+	return OrderDetail{OrderID: ordedetail.OrderID, Item: item, Quantity: ordedetail.Quantity}
 }
 
 func CreateOrder(c *fiber.Ctx) error {
@@ -43,11 +44,23 @@ func CreateOrder(c *fiber.Ctx) error {
 	}
 
 	orderdetails := []models.OrderDetail{}
+	responseDetails := []OrderDetail{}
 	config.Database.Db.Create(&order)
 	for _, v := range order.OrderDetails {
 		v.OrderID = order.ID
+		var item models.Item
+		if err := findItemByID(v.ItemRefer, &item); err != nil {
+			return c.Status(400).JSON(err.Error())
+		}
+		var category models.Category
+		if err := findCategory(item.CategoryRefer, &category); err != nil {
+			return c.Status(400).JSON(err.Error())
+		}
+		responseCategory := CreateResponseCategory(category)
+		responseItem := CreateResponseItem(item, responseCategory)
 		orderdetails = append(orderdetails, v)
+		responseDetails = append(responseDetails, CreateResponseOrderDetail(v, responseItem))
 	}
 
-	return c.Status(200).JSON(orderdetails)
+	return c.Status(200).JSON(responseDetails)
 }
