@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"errors"
 	"qr-menu-api/config"
 	"qr-menu-api/models"
 	"time"
@@ -65,3 +66,74 @@ func CreateOrder(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(responseOrder)
 }
+
+func findOrdersByTable(tableRefer int, orders *[]models.Order) error {
+	config.Database.Db.Find(&orders, "table_refer=?", tableRefer)
+	if len(*orders) == 0 {
+		return errors.New("no orders in this table")
+	}
+	return nil
+}
+
+func findOrderByTable(tableRefer int, order *models.Order, isPaid int) error {
+	config.Database.Db.Where("table_refer=?", tableRefer).Find(&order, "is_paid=?", isPaid)
+	if order.ID == 0 {
+		return errors.New("order does not exist")
+	}
+	return nil
+}
+
+func GetAllOrders(c *fiber.Ctx) error {
+	tableRefer, err := c.ParamsInt("table_refer")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :table_refer is an integer")
+	}
+
+	var orders []models.Order
+	if err := findOrdersByTable(tableRefer, &orders); err != nil {
+		if err.Error() == "no orders in this table" {
+			return c.Status(404).JSON("No items found in this table")
+		}
+		return c.Status(500).JSON("Internal server errror")
+	}
+
+	responseOrders := []Order{}
+	responseDetails := []OrderDetail{}
+	for _, order := range orders {
+		var table models.Table
+		config.Database.Db.Find(&table, "id=?", order.TableRefer)
+		var orderDetails []models.OrderDetail
+		config.Database.Db.Find(&orderDetails, "order_id", order.ID)
+		for _, v := range orderDetails {
+			var item models.Item
+			if err := findItemByID(v.ItemRefer, &item); err != nil {
+				return c.Status(400).JSON(err.Error())
+			}
+			var category models.Category
+			if err := findCategory(item.CategoryRefer, &category); err != nil {
+				return c.Status(400).JSON(err.Error())
+			}
+			responseCategory := CreateResponseCategory(category)
+			responseItem := CreateResponseItem(item, responseCategory)
+			responseDetails = append(responseDetails, CreateResponseOrderDetail(v, responseItem))
+		}
+		responseTable := CreateResponseTable(table)
+		responseOrder := CreateResponseOrder(order, responseTable, responseDetails)
+		responseOrders = append(responseOrders, responseOrder)
+	}
+	return c.Status(200).JSON(responseOrders)
+}
+
+func GetSpecificOrder(c *fiber.Ctx) error {
+	return nil
+}
+
+/*
+func GetActiveOrder(c *fiber.Ctx) error {
+	tableRefer, err := c.ParamsInt("table_refer")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :table_refer is an integer")
+	}
+	var order models.Order
+}
+*/

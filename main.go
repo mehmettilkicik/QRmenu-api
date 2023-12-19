@@ -31,6 +31,7 @@ func setupRoutes(app *fiber.App) {
 	app.Delete("api/items/:category_refer/:id", routes.DeleteItem)
 	//Order endpoints
 	app.Post("/api/orders", routes.CreateOrder)
+	app.Get("api/orders/:table_refer", routes.GetAllOrders)
 }
 
 func main() {
