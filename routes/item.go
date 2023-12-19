@@ -19,10 +19,11 @@ type Item struct {
 	ID       uint     `json:"id" gorm:"primaryKey"`
 	Name     string   `json:"name"`
 	Category Category `json:"category"`
+	Price    string   `json:"price"`
 }
 
 func CreateResponseItem(item models.Item, category Category) Item {
-	return Item{ID: item.ID, Name: item.Name, Category: category}
+	return Item{ID: item.ID, Name: item.Name, Category: category, Price: item.Price}
 }
 
 func CreateItem(c *fiber.Ctx) error {

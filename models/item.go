@@ -8,4 +8,5 @@ type Item struct {
 	Name          string   `json:"name"`
 	CategoryRefer int      `json:"category_id"`
 	Category      Category `gorm:"foreignKey:CategoryRefer"`
+	Price         string   `json:"price"`
 }
