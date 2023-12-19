@@ -43,11 +43,11 @@ func CreateOrder(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	orderdetails := []models.OrderDetail{}
 	responseDetails := []OrderDetail{}
 	config.Database.Db.Create(&order)
 	for _, v := range order.OrderDetails {
 		v.OrderID = order.ID
+		config.Database.Db.Create(&v)
 		var item models.Item
 		if err := findItemByID(v.ItemRefer, &item); err != nil {
 			return c.Status(400).JSON(err.Error())
@@ -58,9 +58,10 @@ func CreateOrder(c *fiber.Ctx) error {
 		}
 		responseCategory := CreateResponseCategory(category)
 		responseItem := CreateResponseItem(item, responseCategory)
-		orderdetails = append(orderdetails, v)
 		responseDetails = append(responseDetails, CreateResponseOrderDetail(v, responseItem))
 	}
+	responseTable := CreateResponseTable(table)
+	responseOrder := CreateResponseOrder(order, responseTable, responseDetails)
 
-	return c.Status(200).JSON(responseDetails)
+	return c.Status(200).JSON(responseOrder)
 }
