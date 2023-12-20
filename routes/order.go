@@ -66,6 +66,54 @@ func CreateOrder(c *fiber.Ctx) error {
 	return c.Status(200).JSON(responseOrder)
 }
 
+// Find All orders
+func findOrders(orders *[]models.Order) error {
+	config.Database.Db.Find(&orders)
+	if len(*orders) == 0 {
+		return errors.New("there is no order")
+	}
+	return nil
+}
+
+// Get All orders
+func GetOrders(c *fiber.Ctx) error {
+	orders := []models.Order{}
+
+	if err := findOrders(&orders); err != nil {
+		return c.Status(400).JSON("error")
+	}
+
+	responseOrders := []Order{}
+	responseDetails := []OrderDetail{}
+	for _, order := range orders {
+		var table models.Table
+		config.Database.Db.Find(&table, "id=?", order.TableRefer)
+		var orderDetails []models.OrderDetail
+		config.Database.Db.Find(&orderDetails, "order_id=?", order.ID)
+		for _, v := range orderDetails {
+			var item models.Item
+			if err := findItemByID(v.ItemRefer, &item); err != nil {
+				return c.Status(400).JSON(err.Error())
+			}
+			var category models.Category
+			if err := findCategory(item.CategoryRefer, &category); err != nil {
+				return c.Status(400).JSON(err.Error())
+			}
+			responseCategory := CreateResponseCategory(category)
+			responseItem := CreateResponseItem(item, responseCategory)
+			responseDetails = append(responseDetails, CreateResponseOrderDetail(v, responseItem))
+
+		}
+		responseTable := CreateResponseTable(table)
+		responseOrder := CreateResponseOrder(order, responseTable, responseDetails)
+		responseOrders = append(responseOrders, responseOrder)
+		responseDetails = []OrderDetail{}
+	}
+	return c.Status(200).JSON(responseOrders)
+}
+
+//
+
 func findOrdersByTable(tableRefer int, orders *[]models.Order) error {
 	config.Database.Db.Find(&orders, "table_refer=?", tableRefer)
 	if len(*orders) == 0 {
