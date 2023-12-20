@@ -32,7 +32,7 @@ func setupRoutes(app *fiber.App) {
 	//Order endpoints
 	app.Post("/api/orders", routes.CreateOrder)
 	app.Get("/api/orders", routes.GetOrders)
-	//app.Get("api/orders/:table_refer", routes.GetAllOrders)
+	app.Get("api/orders/:is_paid", routes.GetActiveOrInactiveOrders)
 }
 
 func main() {

@@ -31,6 +31,7 @@ func CreateResponseOrderDetail(ordedetail models.OrderDetail, item Item) OrderDe
 	return OrderDetail{OrderID: ordedetail.OrderID, Item: item, Quantity: ordedetail.Quantity}
 }
 
+// Create Order
 func CreateOrder(c *fiber.Ctx) error {
 	var order models.Order
 
@@ -66,7 +67,9 @@ func CreateOrder(c *fiber.Ctx) error {
 	return c.Status(200).JSON(responseOrder)
 }
 
-// Find All orders
+//Create Order End
+
+// Find All Orders
 func findOrders(orders *[]models.Order) error {
 	config.Database.Db.Find(&orders)
 	if len(*orders) == 0 {
@@ -74,6 +77,8 @@ func findOrders(orders *[]models.Order) error {
 	}
 	return nil
 }
+
+// Find All Orders End
 
 // Get All orders
 func GetOrders(c *fiber.Ctx) error {
@@ -125,19 +130,64 @@ func FindActiveOrInactiveOrders(orders *[]models.Order, isPaid bool) error {
 	return nil
 }
 
-// Get Active Orders
-/*
+//Find Active Or Inactive Orders End
+
+// Get Active or Inactive Orders
+
 func GetActiveOrInactiveOrders(c *fiber.Ctx) error {
 	aori, err := c.ParamsInt("is_paid")
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :is_paid is an integer")
 	}
-	var orders []models.Order
-	if err := FindActiveOrInactiveOrders(); err != nil {
-		return nil
+	var acorin bool
+
+	if aori == 1 {
+		acorin = true
+	} else if aori == 0 {
+		acorin = false
 	}
+
+	var orders []models.Order
+	if err := FindActiveOrInactiveOrders(&orders, acorin); err != nil {
+		if err.Error() == "no active orders" {
+			return c.Status(404).JSON("no active order found")
+		} else if err.Error() == "no inactive orders" {
+			return c.Status(404).JSON("no inactive order found")
+		}
+		return c.Status(500).JSON("internal server error")
+	}
+
+	responseOrders := []Order{}
+	responseDetails := []OrderDetail{}
+	for _, order := range orders {
+		var table models.Table
+		config.Database.Db.Find(&table, "id=?", order.TableRefer)
+		var orderDetails []models.OrderDetail
+		config.Database.Db.Find(&orderDetails, "order_id=?", order.ID)
+		for _, v := range orderDetails {
+			var item models.Item
+			if err := findItemByID(v.ItemRefer, &item); err != nil {
+				return c.Status(400).JSON(err.Error())
+			}
+			var category models.Category
+			if err := findCategory(item.CategoryRefer, &category); err != nil {
+				return c.Status(400).JSON(err.Error())
+			}
+			responseCategory := CreateResponseCategory(category)
+			responseItem := CreateResponseItem(item, responseCategory)
+			responseDetails = append(responseDetails, CreateResponseOrderDetail(v, responseItem))
+
+		}
+		responseTable := CreateResponseTable(table)
+		responseOrder := CreateResponseOrder(order, responseTable, responseDetails)
+		responseOrders = append(responseOrders, responseOrder)
+		responseDetails = []OrderDetail{}
+	}
+	return c.Status(200).JSON(responseOrders)
+
 }
-*/
+
+//Get Active Or Inactive Orders End
 
 /*
 func findOrdersByTable(tableRefer int, orders *[]models.Order) error {
