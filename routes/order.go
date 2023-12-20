@@ -285,6 +285,7 @@ func GetSpecificOrder(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :is_paid is an integer")
 	}
+
 	var acorin bool
 
 	if aori == 1 {
@@ -339,3 +340,149 @@ func GetSpecificOrder(c *fiber.Ctx) error {
 }
 
 // Get Specific Order End
+
+//Update Order Detail
+
+func UpdateOrderDetail(c *fiber.Ctx) error {
+	aori, err := c.ParamsInt("is_paid")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :is_paid is an integer")
+	}
+	var acorin bool
+
+	if aori == 1 {
+		acorin = true
+	} else if aori == 0 {
+		acorin = false
+	}
+
+	tableRefer, err := c.ParamsInt("table_refer")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :table_refer is an integer")
+	}
+
+	id, err := c.ParamsInt("id")
+
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
+	}
+
+	var order models.Order
+
+	if err := findSpecificOrder(&order, tableRefer, acorin, id); err != nil {
+		if err.Error() == ("order does not exist") {
+			return c.Status(404).JSON("there is no such an order")
+		}
+		return c.Status(500).JSON("internal server error")
+	}
+
+	var orderdetails []models.OrderDetail
+
+	if err := c.BodyParser(&orderdetails); err != nil {
+		return c.Status(500).JSON(err.Error())
+	}
+
+	responseDetails := []OrderDetail{}
+	var table models.Table
+	config.Database.Db.Find(&table, "id=?", order.TableRefer)
+
+	for _, v := range orderdetails {
+		v.OrderID = order.ID
+		config.Database.Db.Create(&v)
+	}
+
+	var orderDetails []models.OrderDetail
+	config.Database.Db.Find(&orderDetails, "order_id=?", order.ID)
+	for _, v := range orderDetails {
+		var item models.Item
+		if err := findItemByID(v.ItemRefer, &item); err != nil {
+			return c.Status(400).JSON(err.Error())
+		}
+		var category models.Category
+		if err := findCategory(item.CategoryRefer, &category); err != nil {
+			return c.Status(400).JSON(err.Error())
+		}
+		responseCategory := CreateResponseCategory(category)
+		responseItem := CreateResponseItem(item, responseCategory)
+		responseDetails = append(responseDetails, CreateResponseOrderDetail(v, responseItem))
+	}
+	responseTable := CreateResponseTable(table)
+	responseOrder := CreateResponseOrder(order, responseTable, responseDetails)
+
+	return c.Status(200).JSON(responseOrder)
+}
+
+//Update Order Detail End
+
+func UpdateOrder(c *fiber.Ctx) error {
+	aori, err := c.ParamsInt("is_paid")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :is_paid is an integer")
+	}
+	var acorin bool
+
+	if aori == 1 {
+		acorin = true
+	} else if aori == 0 {
+		acorin = false
+	}
+
+	tableRefer, err := c.ParamsInt("table_refer")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :table_refer is an integer")
+	}
+
+	id, err := c.ParamsInt("id")
+
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
+	}
+
+	var order models.Order
+
+	if err := findSpecificOrder(&order, tableRefer, acorin, id); err != nil {
+		if err.Error() == ("order does not exist") {
+			return c.Status(404).JSON("there is no such an order")
+		}
+		return c.Status(500).JSON("internal server error")
+	}
+
+	type UpdateOrder struct {
+		IsPaid bool `json:"is_paid"`
+	}
+
+	var updatedata UpdateOrder
+
+	if err := c.BodyParser(&updatedata); err != nil {
+		return c.Status(500).JSON(err.Error())
+	}
+
+	order.IsPaid = updatedata.IsPaid
+
+	config.Database.Db.Save(&order)
+
+	responseDetails := []OrderDetail{}
+	var table models.Table
+	config.Database.Db.Find(&table, "id=?", order.TableRefer)
+	var orderDetails []models.OrderDetail
+	config.Database.Db.Find(&orderDetails, "order_id=?", order.ID)
+
+	for _, v := range orderDetails {
+		var item models.Item
+		if err := findItemByID(v.ItemRefer, &item); err != nil {
+			return c.Status(400).JSON(err.Error())
+		}
+		var category models.Category
+		if err := findCategory(item.CategoryRefer, &category); err != nil {
+			return c.Status(400).JSON(err.Error())
+		}
+		responseCategory := CreateResponseCategory(category)
+		responseItem := CreateResponseItem(item, responseCategory)
+		responseDetails = append(responseDetails, CreateResponseOrderDetail(v, responseItem))
+	}
+	responseTable := CreateResponseTable(table)
+	responseOrder := CreateResponseOrder(order, responseTable, responseDetails)
+
+	return c.Status(200).JSON(responseOrder)
+
+}
