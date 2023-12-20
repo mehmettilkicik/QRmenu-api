@@ -34,7 +34,7 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/api/orders", routes.GetOrders)
 	app.Get("api/orders/:is_paid", routes.GetActiveOrInactiveOrders)
 	app.Get("/api/orders/:is_paid/:table_refer", routes.GetOrdersByTable)
-	app.Get("/api/orders/:is_paid/:table_refer/:id")
+	app.Get("/api/orders/:is_paid/:table_refer/:id", routes.GetSpecificOrder)
 }
 
 func main() {

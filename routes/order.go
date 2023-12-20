@@ -266,8 +266,21 @@ func GetOrdersByTable(c *fiber.Ctx) error {
 
 //Get Orders By Table End
 
-/*
-func GetOrderByTable(c *fiber.Ctx) error {
+//Find Specific Order
+
+func findSpecificOrder(order *models.Order, tableRefer int, isPaid bool, id int) error {
+	config.Database.Db.Where("is_paid=?", isPaid).Where("table_refer=?", tableRefer).Find(&order, "id=?", id)
+	if order.ID == 0 {
+		return errors.New("order does not exist")
+	}
+	return nil
+}
+
+//Find Specific Order End
+
+// Get Specific Order
+
+func GetSpecificOrder(c *fiber.Ctx) error {
 	aori, err := c.ParamsInt("is_paid")
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :is_paid is an integer")
@@ -285,18 +298,27 @@ func GetOrderByTable(c *fiber.Ctx) error {
 		return c.Status(400).JSON("Please ensure that :table_refer is an integer")
 	}
 
-	var order models.Order
-	if err := findOrderByTable(tableRefer, &order,acorin); err != nil {
-		if err.Error() == "no orders in this table" {
-			return c.Status(404).JSON("No items found in this table")
-		}
-		return c.Status(500).JSON("Internal server errror")
+	id, err := c.ParamsInt("id")
+
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
 	}
-	var table models.Table
+
+	var order models.Order
+
+	if err := findSpecificOrder(&order, tableRefer, acorin, id); err != nil {
+		if err.Error() == ("order does not exist") {
+			return c.Status(404).JSON("there is no such an order")
+		}
+		return c.Status(500).JSON("internal server error")
+	}
+
 	responseDetails := []OrderDetail{}
+	var table models.Table
 	config.Database.Db.Find(&table, "id=?", order.TableRefer)
 	var orderDetails []models.OrderDetail
 	config.Database.Db.Find(&orderDetails, "order_id=?", order.ID)
+
 	for _, v := range orderDetails {
 		var item models.Item
 		if err := findItemByID(v.ItemRefer, &item); err != nil {
@@ -315,17 +337,5 @@ func GetOrderByTable(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(responseOrder)
 }
-*/
 
-/*
-func GetSpecificOrder(c *fiber.Ctx) error {
-	return nil
-}
-func GetActiveOrder(c *fiber.Ctx) error {
-	tableRefer, err := c.ParamsInt("table_refer")
-	if err != nil {
-		return c.Status(400).JSON("Please ensure that :table_refer is an integer")
-	}
-	var order models.Order
-}
-*/
+// Get Specific Order End
