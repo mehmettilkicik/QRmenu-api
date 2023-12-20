@@ -112,8 +112,34 @@ func GetOrders(c *fiber.Ctx) error {
 	return c.Status(200).JSON(responseOrders)
 }
 
-//
+// Find Active Or Inactive Orders
+func FindActiveOrInactiveOrders(orders *[]models.Order, isPaid bool) error {
+	config.Database.Db.Find(&orders, "is_paid=?", isPaid)
+	if len(*orders) == 0 {
+		if !isPaid {
+			return errors.New("no active orders")
+		} else if isPaid {
+			return errors.New("no inactive orders")
+		}
+	}
+	return nil
+}
 
+// Get Active Orders
+/*
+func GetActiveOrInactiveOrders(c *fiber.Ctx) error {
+	aori, err := c.ParamsInt("is_paid")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :is_paid is an integer")
+	}
+	var orders []models.Order
+	if err := FindActiveOrInactiveOrders(); err != nil {
+		return nil
+	}
+}
+*/
+
+/*
 func findOrdersByTable(tableRefer int, orders *[]models.Order) error {
 	config.Database.Db.Find(&orders, "table_refer=?", tableRefer)
 	if len(*orders) == 0 {
@@ -174,8 +200,6 @@ func GetAllOrders(c *fiber.Ctx) error {
 func GetSpecificOrder(c *fiber.Ctx) error {
 	return nil
 }
-
-/*
 func GetActiveOrder(c *fiber.Ctx) error {
 	tableRefer, err := c.ParamsInt("table_refer")
 	if err != nil {
