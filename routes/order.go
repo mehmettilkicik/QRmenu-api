@@ -190,16 +190,83 @@ func GetActiveOrInactiveOrders(c *fiber.Ctx) error {
 //Get Active Or Inactive Orders End
 
 // Find Order By Table
-func findOrderByTable(tableRefer int, order *models.Order, isPaid bool) error {
-	config.Database.Db.Where("table_refer=?", tableRefer).Find(&order, "is_paid=?", isPaid)
-	if order.ID == 0 {
-		return errors.New("order does not exist")
+func findOrderByTable(tableRefer int, orders *[]models.Order, isPaid bool) error {
+	config.Database.Db.Where("is_paid=?", isPaid).Find(&orders, "table_refer", tableRefer)
+	if len(*orders) == 0 {
+		if !isPaid {
+			return errors.New("no active orders in this table")
+		} else if isPaid {
+			return errors.New("no inactive orders in this table")
+		}
 	}
 	return nil
 }
 
 //Find Order By Table End
 
+//Get Orders By Table
+
+func GetOrdersByTable(c *fiber.Ctx) error {
+	aori, err := c.ParamsInt("is_paid")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :is_paid is an integer")
+	}
+	var acorin bool
+
+	if aori == 1 {
+		acorin = true
+	} else if aori == 0 {
+		acorin = false
+	}
+
+	tableRefer, err := c.ParamsInt("table_refer")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :table_refer is an integer")
+	}
+	var orders []models.Order
+	if err := findOrderByTable(tableRefer, &orders, acorin); err != nil {
+		if err.Error() == "no active orders" {
+			return c.Status(404).JSON("no active order found in this table")
+		} else if err.Error() == "no inactive orders" {
+			return c.Status(404).JSON("no inactive order found in this table")
+		}
+		return c.Status(500).JSON("internal server error")
+	}
+
+	responseOrders := []Order{}
+	responseDetails := []OrderDetail{}
+
+	for _, order := range orders {
+		var table models.Table
+		config.Database.Db.Find(&table, "id=?", order.TableRefer)
+		var orderDetails []models.OrderDetail
+		config.Database.Db.Find(&orderDetails, "order_id=?", order.ID)
+		for _, v := range orderDetails {
+			var item models.Item
+			if err := findItemByID(v.ItemRefer, &item); err != nil {
+				return c.Status(400).JSON(err.Error())
+			}
+			var category models.Category
+			if err := findCategory(item.CategoryRefer, &category); err != nil {
+				return c.Status(400).JSON(err.Error())
+			}
+			responseCategory := CreateResponseCategory(category)
+			responseItem := CreateResponseItem(item, responseCategory)
+			responseDetails = append(responseDetails, CreateResponseOrderDetail(v, responseItem))
+
+		}
+		responseTable := CreateResponseTable(table)
+		responseOrder := CreateResponseOrder(order, responseTable, responseDetails)
+		responseOrders = append(responseOrders, responseOrder)
+		responseDetails = []OrderDetail{}
+
+	}
+	return c.Status(200).JSON(responseOrders)
+}
+
+//Get Orders By Table End
+
+/*
 func GetOrderByTable(c *fiber.Ctx) error {
 	aori, err := c.ParamsInt("is_paid")
 	if err != nil {
@@ -219,7 +286,7 @@ func GetOrderByTable(c *fiber.Ctx) error {
 	}
 
 	var order models.Order
-	if err := findOrderByTable(tableRefer, &order, acorin); err != nil {
+	if err := findOrderByTable(tableRefer, &order,acorin); err != nil {
 		if err.Error() == "no orders in this table" {
 			return c.Status(404).JSON("No items found in this table")
 		}
@@ -248,6 +315,7 @@ func GetOrderByTable(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(responseOrder)
 }
+*/
 
 /*
 func GetSpecificOrder(c *fiber.Ctx) error {
