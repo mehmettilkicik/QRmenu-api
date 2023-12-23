@@ -121,11 +121,7 @@ func GetOrders(c *fiber.Ctx) error {
 func FindActiveOrInactiveOrders(orders *[]models.Order, isPaid bool) error {
 	config.Database.Db.Find(&orders, "is_paid=?", isPaid)
 	if len(*orders) == 0 {
-		if !isPaid {
-			return errors.New("no active orders")
-		} else if isPaid {
-			return errors.New("no inactive orders")
-		}
+		return errors.New("no active or inactive orders")
 	}
 	return nil
 }
