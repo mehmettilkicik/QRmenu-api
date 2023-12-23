@@ -9,45 +9,49 @@ import (
 )
 
 func setupRoutes(app *fiber.App) {
-	//Table endpoints
-	app.Post("/api/tables/", routes.CreateTable)
-	app.Get("/api/tables/", routes.GetTables)
-	app.Get("/api/tables/:id", routes.GetTable)
-	app.Put("/api/tables/:id", routes.UpdateTable)
-	app.Delete("/api/tables/:id", routes.DeleteTable)
+	api := app.Group("api/")
 
+	table_api := api.Group("tables/")
+
+	//Table endpoints
+	table_api.Post("/", routes.CreateTable)
+	table_api.Get("/", routes.GetTables)
+	table_api.Get("/:id", routes.GetTable)
+	table_api.Put("/:id", routes.UpdateTable)
+	table_api.Delete("/:id", routes.DeleteTable)
+
+	category_api := api.Group("categories/")
 	//Category endpoints
-	app.Post("/api/categories", routes.CreateCategory)
-	app.Get("/api/categories", routes.GetCategories)
-	app.Get("/api/categories/:id", routes.GetCategory)
-	app.Put("/api/categories/:id", routes.UpdateCategory)
-	app.Delete("/api/categories/:id", routes.DeleteCategory)
+	category_api.Post("", routes.CreateCategory)
+	category_api.Get("", routes.GetCategories)
+	category_api.Get(":id", routes.GetCategory)
+	category_api.Put(":id", routes.UpdateCategory)
+	category_api.Delete(":id", routes.DeleteCategory)
+
+	item_api := api.Group("items/")
 	//Item endpoints
-	app.Post("/api/items", routes.CreateItem)
-	app.Get("/api/items", routes.GetItems)
-	app.Get("/api/items/:category_refer", routes.GetItemsByCategory)
-	app.Get("api/items/:category_refer/:id", routes.GetItem)
-	app.Put("api/items/:category_refer/:id", routes.UpdateItem)
-	app.Delete("api/items/:category_refer/:id", routes.DeleteItem)
+	item_api.Post("", routes.CreateItem)
+	item_api.Get("", routes.GetItems)
+	item_api.Get(":category_refer", routes.GetItemsByCategory)
+	item_api.Get(":category_refer/:id", routes.GetItem)
+	item_api.Put(":category_refer/:id", routes.UpdateItem)
+	item_api.Delete(":category_refer/:id", routes.DeleteItem)
+
+	order_api := api.Group("orders/")
 	//Order endpoints
-	app.Post("/api/orders", routes.CreateOrder)
-	app.Get("/api/orders", routes.GetOrders)
-	app.Get("api/orders/:is_paid", routes.GetActiveOrInactiveOrders)
-	app.Get("/api/orders/:is_paid/:table_refer", routes.GetOrdersByTable)
-	app.Get("/api/orders/:is_paid/:table_refer/:id", routes.GetSpecificOrder)
-	app.Post("/api/orders/:is_paid/:table_refer/:id", routes.UpdateOrderDetail)
-	app.Put("/api/orders/:is_paid/:table_refer/:id", routes.UpdateOrder)
+	order_api.Post("", routes.CreateOrder)
+	order_api.Get("", routes.GetOrders)
+	order_api.Get(":is_paid", routes.GetActiveOrInactiveOrders)
+	order_api.Get(":is_paid/:table_refer", routes.GetOrdersByTable)
+	order_api.Get(":is_paid/:table_refer/:id", routes.GetSpecificOrder)
+	order_api.Post(":is_paid/:table_refer/:id", routes.UpdateOrderDetail)
+	order_api.Put(":is_paid/:table_refer/:id", routes.UpdateOrder)
 }
 
 func main() {
 	config.ConnectDb()
 	app := fiber.New()
 	setupRoutes(app)
-	app.Get("api", welcome)
 	log.Fatal(app.Listen(":3000"))
 
-}
-
-func welcome(c *fiber.Ctx) error {
-	return c.Status(200).JSON("welcome there ")
 }
