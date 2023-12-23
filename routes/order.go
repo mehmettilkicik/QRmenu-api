@@ -24,7 +24,7 @@ type OrderDetail struct {
 }
 
 func CreateResponseOrder(order models.Order, table Table, ordedetails []OrderDetail) Order {
-	return Order{ID: order.ID, CreatedAt: order.CreatedAt, Table: table, OrderDetails: ordedetails}
+	return Order{ID: order.ID, CreatedAt: order.CreatedAt, Table: table, OrderDetails: ordedetails, IsPaid: order.IsPaid}
 }
 
 func CreateResponseOrderDetail(ordedetail models.OrderDetail, item Item) OrderDetail {
